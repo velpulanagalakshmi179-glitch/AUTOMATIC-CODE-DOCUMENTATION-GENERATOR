@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>⚡ Code Doc Generator</title>
+
+  <!-- CSS — same folder -->
+  <link rel="stylesheet" href="style.css"/>
+
+  <!-- Mermaid CDN for flowchart rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: false, theme: "dark" });</script>
+</head>
+<body>
+<div class="app">
+
+  <script>
+async function checkAuth() {
+  const loggedIn = localStorage.getItem('logged_in');
+  const userName = localStorage.getItem('user_name');
+  const username = localStorage.getItem('username');
+  const userEmail = localStorage.getItem('user_email');
+  if (!loggedIn || loggedIn !== 'true') {
+    window.location.href = 'login.html';
+    return;
+  }
+  const nameEl = document.getElementById('user-name-display');
+  const userEl = document.getElementById('username-display');
+  const avatarEl = document.getElementById('user-avatar');
+  if (nameEl) nameEl.textContent = userName || 'User';
+  if (userEl) userEl.textContent = '@' + (username || 'user');
+  if (avatarEl) avatarEl.textContent = 
+    (userName || 'U').charAt(0).toUpperCase();
+}
+checkAuth();
+</script>
+
+  <!-- ══════════ HEADER ══════════ -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">Code<span>Doc</span> Generator</div>
+        <div class="logo-sub">Powered by Groq AI • LLaMA3-70B • Flask + Python</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="user-info-badge" onclick="toggleProfile()">
+        <div class="user-avatar" id="user-avatar">U</div>
+        <div>
+          <div id="user-name-display" style="font-size:0.85rem;font-weight:700">User</div>
+          <div id="username-display" style="font-size:0.72rem;color:var(--muted)">@username</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="doLogout()">🚪 Logout</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleHistory()">📋 History</button>
+      <div class="badge">v2.0 — Multi Language</div>
+    </div>
+  </header>
+
+  <!-- ══════════ HISTORY SIDEBAR ══════════ -->
+  <div class="history-overlay" id="history-overlay" onclick="toggleHistory()"></div>
+  <div class="history-sidebar" id="history-sidebar">
+    <div class="history-header">
+      <span>📋 My History</span>
+      <button onclick="toggleHistory()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <div class="history-list" id="history-list">
+      <div style="color:var(--muted);font-size:0.82rem;padding:20px;text-align:center">Loading history...</div>
+    </div>
+  </div>
+
+  <!-- ══════════ PROFILE POPUP ══════════ -->
+  <div class="profile-overlay" id="profile-overlay" 
+  onclick="toggleProfile()"></div>
+
+  <div class="profile-popup" id="profile-popup">
+    <div class="profile-popup-header">
+      <div class="profile-big-avatar" id="profile-big-avatar">U</div>
+      <div>
+        <div class="profile-full-name" id="profile-full-name">User</div>
+        <div class="profile-username" id="profile-username">@username</div>
+      </div>
+    </div>
+    <div class="profile-divider"></div>
+    <div class="profile-stats">
+      <div class="profile-stat-item">
+        <div class="profile-stat-value" id="stat-total">0</div>
+        <div class="profile-stat-label">Total Actions</div>
+      </div>
+      <div class="profile-stat-item">
+        <div class="profile-stat-value" id="stat-docs">0</div>
+        <div class="profile-stat-label">Docs Generated</div>
+      </div>
+      <div class="profile-stat-item">
+        <div class="profile-stat-value" id="stat-extracts">0</div>
+        <div class="profile-stat-label">Extractions</div>
+      </div>
+    </div>
+    <div class="profile-divider"></div>
+    <div class="profile-menu">
+      <div class="profile-menu-item" onclick="toggleTheme()">
+        🎨 <span id="theme-label">Switch to Light Mode</span>
+      </div>
+      <div class="profile-menu-item" onclick="clearAllHistory()">
+        🗑️ Clear All History
+      </div>
+      <div class="profile-menu-item" onclick="openEditProfile()">
+        ✏️ Edit Name
+      </div>
+      <div class="profile-menu-item" onclick="openChangePassword()">
+        🔑 Change Password
+      </div>
+      <div class="profile-menu-item danger" onclick="doLogout()">
+        🚪 Logout
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MODALS ══════════ -->
+  <div class="modal-overlay" id="modal-overlay"></div>
+
+  <div class="modal" id="edit-profile-modal">
+    <div class="modal-header">
+      <span>✏️ Edit Profile</span>
+      <button onclick="closeModals()" 
+        style="background:none;border:none;color:var(--muted);
+        cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="input-group" style="margin-bottom:16px">
+        <label>Full Name</label>
+        <input type="text" id="edit-name-input" 
+          placeholder="Enter new name"/>
+      </div>
+      <div class="input-group" style="margin-bottom:16px">
+        <label>Username</label>
+        <input type="text" id="edit-username-input" 
+          placeholder="Enter new username"/>
+      </div>
+      <div class="input-group" style="margin-bottom:16px">
+        <label>Email</label>
+        <input type="email" id="edit-email-input" 
+          placeholder="Enter new email address"/>
+      </div>
+      <div class="login-error" id="edit-error"></div>
+      <div class="login-success" id="edit-success"></div>
+      <button class="login-btn" onclick="saveEditProfile()">
+        💾 Save Changes
+      </button>
+    </div>
+  </div>
+
+  <div class="modal" id="change-password-modal">
+    <div class="modal-header">
+      <span>🔑 Change Password</span>
+      <button onclick="closeModals()" 
+        style="background:none;border:none;color:var(--muted);
+        cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="input-group" style="margin-bottom:16px">
+        <label>Current Password</label>
+        <input type="password" id="current-pass-input" 
+          placeholder="Enter current password"/>
+      </div>
+      <div class="input-group" style="margin-bottom:16px">
+        <label>New Password</label>
+        <input type="password" id="new-pass-input" 
+          placeholder="Enter new password (min 6 chars)"/>
+      </div>
+      <div class="input-group" style="margin-bottom:16px">
+        <label>Confirm New Password</label>
+        <input type="password" id="confirm-pass-input" 
+          placeholder="Confirm new password"/>
+      </div>
+      <div class="login-error" id="pass-error"></div>
+      <div class="login-success" id="pass-success"></div>
+      <button class="login-btn" onclick="saveChangePassword()">
+        🔑 Update Password
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ TABS ══════════ -->
+  <div class="tabs">
+    <button class="tab active" id="tab-extract"    onclick="switchTab('extract')">🔍 Extract</button>
+    <button class="tab"        id="tab-document"   onclick="switchTab('document')">📄 Document</button>
+    <button class="tab"        id="tab-explain"    onclick="switchTab('explain')">🧠 Explain + Chart</button>
+    <button class="tab"        id="tab-complexity" onclick="switchTab('complexity')">📊 Complexity</button>
+    <button class="tab"        id="tab-plagiarism" onclick="switchTab('plagiarism')">🔎 Plagiarism</button>
+    <button class="tab"        id="tab-translate"  onclick="switchTab('translate')">🌐 Translate</button>
+    <button class="tab"        id="tab-export"     onclick="switchTab('export')">💾 Export</button>
+    <button class="tab" id="tab-bugfinder" 
+      onclick="switchTab('bugfinder')">🐛 Bug Finder</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PANEL 1 — EXTRACT
+  ══════════════════════════════════════════ -->
+  <div class="panel active" id="panel-extract">
+    <div class="section-title">🔍 Function Extractor</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Code Input</div>
+        <div class="gap-12">
+          <div>
+            <label>Paste your code below</label>
+            <textarea id="extract-code" rows="13"
+              placeholder="function greet(name) {&#10;    return `Hello, ${name}!`;&#10;}&#10;&#10;function add(a, b) {&#10;    return a + b;&#10;}"></textarea>
+            <div class="char-counter" id="counter-extract-code">0 / 5000 chars</div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="runExtract()">
+              <span id="sp-extract" class="spinner" style="display:none"></span>
+              🔍 Extract Functions
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="clearInput('extract-code')">Clear</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Extracted Functions</div>
+        <ul class="fn-list" id="fn-list">
+          <li style="color:var(--muted);font-size:0.82rem;padding:10px 0">No functions yet. Paste code and click Extract.</li>
+        </ul>
+        <div id="extract-stats" style="display:none; margin-top:16px">
+          <div class="grid-3">
+            <div class="stat-card">
+              <div class="stat-value" style="color:var(--accent)"  id="st-count">0</div>
+              <div class="stat-label">Functions</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" style="color:var(--accent2)" id="st-args">0</div>
+              <div class="stat-label">Avg Args</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" style="color:var(--accent3)" id="st-lines">—</div>
+              <div class="stat-label">Lines</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PANEL 2 — DOCUMENT
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-document">
+    <div class="section-title">📄 Documentation Generator</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Input Code</div>
+        <div class="gap-12">
+          <div>
+            <label>Paste your code to document</label>
+            <textarea id="doc-code" rows="14" placeholder="Paste your code here…"></textarea>
+            <div class="char-counter" id="counter-doc-code">0 / 5000 chars</div>
+          </div>
+          <button class="btn btn-primary full-btn" onclick="runDocument()">
+            <span id="sp-doc" class="spinner" style="display:none"></span>
+            📄 Generate Documentation
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>AI-Generated Documentation</div>
+        <div class="output-header">
+          <span class="output-label">Output</span>
+          <button class="btn btn-secondary btn-sm" onclick="copyText('doc-output')">📋 Copy</button>
+        </div>
+        <div class="output empty" id="doc-output">Documentation will appear here after processing…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PANEL 3 — EXPLAIN + FLOWCHART
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-explain">
+    <div class="section-title">🧠 Code Explanation + Flowchart</div>
+    <div class="card mb-20">
+      <div class="card-title"><span class="dot"></span>Input Code</div>
+      <textarea id="explain-code" rows="8"
+        placeholder="Paste any code to get a step-by-step explanation AND an auto-generated flowchart…"></textarea>
+      <div class="char-counter" id="counter-explain-code">0 / 5000 chars</div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="runExplain()">
+          <span id="sp-explain" class="spinner" style="display:none"></span>
+          🧠 Explain + Generate Flowchart
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="clearInput('explain-code')">Clear</button>
+      </div>
+    </div>
+    <div class="explain-split">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Step-by-Step Explanation</div>
+        <div class="output-header">
+          <span class="output-label">Explanation</span>
+          <button class="btn btn-secondary btn-sm" onclick="copyText('explain-output')">📋 Copy</button>
+        </div>
+        <div class="output empty" id="explain-output">Explanation will appear here…</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Auto-Generated Flowchart</div>
+        <div class="flowchart-wrap" id="flowchart-wrap">
+          <div class="flowchart-empty">🌊 Flowchart will render here automatically</div>
+        </div>
+        <p class="helper">Mermaid.js syntax generated by Groq AI → rendered as visual diagram</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PANEL 4 — COMPLEXITY
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-complexity">
+    <div class="section-title">📊 Complexity Analysis</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Code Input</div>
+        <div class="gap-12">
+          <textarea id="complexity-code" rows="14"
+            placeholder="Paste code to analyze Big-O complexity…"></textarea>
+          <div class="char-counter" id="counter-complexity-code">0 / 5000 chars</div>
+          <button class="btn btn-primary full-btn" onclick="runComplexity()">
+            <span id="sp-complexity" class="spinner" style="display:none"></span>
+            📊 Analyze Complexity
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Big-O Results</div>
+        <div class="output-header">
+          <span class="output-label">Time &amp; Space Complexity</span>
+          <button class="btn btn-secondary btn-sm" onclick="copyText('complexity-output')">📋 Copy</button>
+        </div>
+        <div class="output empty" id="complexity-output">Time &amp; Space complexity will appear here…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PANEL 5 — PLAGIARISM
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-plagiarism">
+    <div class="section-title">🔎 Plagiarism Detection</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>File 1 — Original</div>
+        <textarea id="plag-code1" rows="12" placeholder="Paste the original/first code file here…"></textarea>
+        <div class="char-counter" id="counter-plag-code1">0 / 5000 chars</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>File 2 — Comparison</div>
+        <textarea id="plag-code2" rows="12" placeholder="Paste the second code file to compare…"></textarea>
+        <div class="char-counter" id="counter-plag-code2">0 / 5000 chars</div>
+      </div>
+    </div>
+    <div style="text-align:center; margin:20px 0">
+      <button class="btn btn-primary" style="min-width:220px" onclick="runPlagiarism()">
+        <span id="sp-plag" class="spinner" style="display:none"></span>
+        🔎 Check Plagiarism
+      </button>
+    </div>
+    <div class="card" id="plag-result" style="display:none">
+      <div class="card-title"><span class="dot"></span>Result</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:2.8rem;font-weight:800;" id="plag-percent">0%</div>
+          <div style="color:var(--muted);font-size:0.8rem">Similarity Score</div>
+        </div>
+        <div id="plag-verdict"></div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="plag-bar" style="width:0%"></div>
+      </div>
+      <div class="output mt-16" id="plag-detail"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PANEL 6 — TRANSLATE
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-translate">
+    <div class="section-title">🌐 Multi-Language Translation</div>
+    <div class="card mb-20">
+      <div class="card-title"><span class="dot"></span>Select Target Language</div>
+      <div class="lang-grid">
+        <div class="lang-btn selected" onclick="selectLang(this,'Hindi')"><span class="flag">🇮🇳</span>Hindi</div>
+        <div class="lang-btn" onclick="selectLang(this,'Arabic')"><span class="flag">🇸🇦</span>Arabic</div>
+        <div class="lang-btn" onclick="selectLang(this,'French')"><span class="flag">🇫🇷</span>French</div>
+        <div class="lang-btn" onclick="selectLang(this,'Spanish')"><span class="flag">🇪🇸</span>Spanish</div>
+        <div class="lang-btn" onclick="selectLang(this,'Urdu')"><span class="flag">🇵🇰</span>Urdu</div>
+        <div class="lang-btn" onclick="selectLang(this,'Chinese')"><span class="flag">🇨🇳</span>Chinese</div>
+        <div class="lang-btn" onclick="selectLang(this,'German')"><span class="flag">🇩🇪</span>German</div>
+        <div class="lang-btn" onclick="selectLang(this,'Portuguese')"><span class="flag">🇧🇷</span>Portuguese</div>
+        <div class="lang-btn" onclick="selectLang(this,'Japanese')"><span class="flag">🇯🇵</span>Japanese</div>
+        <div class="lang-btn" onclick="selectLang(this,'Russian')"><span class="flag">🇷🇺</span>Russian</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Documentation to Translate</div>
+        <div class="gap-12">
+          <textarea id="translate-input" rows="12"
+            placeholder="Paste the English documentation you want to translate…"></textarea>
+          <div class="char-counter" id="counter-translate-input">0 / 5000 chars</div>
+          <button class="btn btn-primary full-btn" onclick="runTranslate()">
+            <span id="sp-translate" class="spinner" style="display:none"></span>
+            🌐 Translate Documentation
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Translated Output</div>
+        <div class="output-header">
+          <span class="output-label" id="translate-lang-label">Hindi</span>
+          <button class="btn btn-secondary btn-sm" onclick="copyText('translate-output')">📋 Copy</button>
+        </div>
+        <div class="output empty" id="translate-output">Translated documentation will appear here…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PANEL 7 — EXPORT
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-export">
+    <div class="section-title">💾 Export Documentation</div>
+    <div class="card mb-20">
+      <div class="card-title"><span class="dot"></span>Export Settings</div>
+      <div class="grid-2">
+        <div class="gap-12">
+          <div>
+            <label>Document Title</label>
+            <input type="text" id="export-title" value="Code Documentation Report"
+              placeholder="My Project Documentation"/>
+          </div>
+          <div>
+            <label>Documentation Content</label>
+            <textarea id="export-content" rows="10"
+              placeholder="Paste your documentation here, or generate it in the Document tab first…"></textarea>
+            <div class="char-counter" id="counter-export-content">0 / 5000 chars</div>
+          </div>
+        </div>
+        <div>
+          <label style="margin-bottom:14px">Choose Export Format</label>
+          <div class="grid-3" style="gap:12px">
+            <div class="export-type-card">
+              <div style="font-size:2rem">📄</div>
+              <h3>PDF</h3>
+              <p>Formatted PDF with flowchart support</p>
+              <button class="btn btn-primary btn-sm full-btn" onclick="exportFile('pdf')">
+                <span id="sp-pdf" class="spinner" style="display:none"></span>
+                Download
+              </button>
+            </div>
+            <div class="export-type-card">
+              <div style="font-size:2rem">📝</div>
+              <h3>TXT</h3>
+              <p>Plain text, maximum compatibility</p>
+              <button class="btn btn-secondary btn-sm full-btn" onclick="exportFile('txt')">Download</button>
+            </div>
+            <div class="export-type-card">
+              <div style="font-size:2rem">📋</div>
+              <h3>Markdown</h3>
+              <p>.md file — perfect for GitHub</p>
+              <button class="btn btn-success btn-sm full-btn" onclick="exportFile('markdown')">Download</button>
+            </div>
+          </div>
+          <div class="card mt-20" style="background:rgba(124,58,237,0.05);border-color:rgba(124,58,237,0.2)">
+            <div class="card-title"><span class="dot"></span>Quick Export (from Document tab)</div>
+            <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px">
+              Export the last generated documentation instantly.
+            </p>
+            <div class="btn-group">
+              <button class="btn btn-primary  btn-sm" onclick="quickExport('pdf')">⬇ PDF</button>
+              <button class="btn btn-secondary btn-sm" onclick="quickExport('txt')">⬇ TXT</button>
+              <button class="btn btn-success  btn-sm" onclick="quickExport('markdown')">⬇ Markdown</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-bugfinder">
+    <div class="section-title">🐛 Bug Finder & Code Review</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          <span class="dot"></span>Paste Your Code
+        </div>
+        <div class="gap-12">
+          <div>
+            <label>Paste any programming language code</label>
+            <textarea id="bug-code" rows="14" 
+              placeholder="Paste your code here to find bugs, errors and get improvement suggestions..."></textarea>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="runBugFinder()">
+              <span id="sp-bug" class="spinner" 
+                style="display:none"></span>
+              🐛 Find Bugs
+            </button>
+            <button class="btn btn-secondary btn-sm" 
+              onclick="clearInput('bug-code')">Clear</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span class="dot"></span>Bug Report & Suggestions
+        </div>
+        <div class="output-header">
+          <span class="output-label">Results</span>
+          <button class="btn btn-secondary btn-sm" 
+            onclick="copyText('bug-output')">📋 Copy</button>
+        </div>
+        <div class="output empty" id="bug-output">
+          Bug report will appear here after analysis...
+        </div>
+      </div>
+    </div>
+    <div class="card mt-20" id="bug-summary" style="display:none">
+      <div class="card-title">
+        <span class="dot"></span>Quick Summary
+      </div>
+      <div class="grid-3">
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--danger)" 
+            id="bug-count">0</div>
+          <div class="stat-label">Bugs Found</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--warning)" 
+            id="warning-count">0</div>
+          <div class="stat-label">Warnings</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--success)" 
+            id="suggestion-count">0</div>
+          <div class="stat-label">Suggestions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<!-- Toast notification -->\n<div id="toast"></div>
+
+<!-- JS — same folder -->
+<script src="script.js"></script>
+</body>
+</html>

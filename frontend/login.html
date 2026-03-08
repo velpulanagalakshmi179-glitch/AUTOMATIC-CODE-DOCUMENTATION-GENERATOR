@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>⚡ Code Doc Generator — Login</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* ── LOGIN PAGE SPECIFIC STYLES ── */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .login-logo-icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+      margin: 0 auto 16px;
+      box-shadow: 0 0 40px var(--glow);
+    }
+
+    .login-logo-text {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .login-logo-text span { color: var(--accent2); }
+
+    .login-logo-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .login-tabs {
+      display: flex;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+      border: 1px solid var(--border);
+    }
+
+    .login-tab {
+      flex: 1;
+      padding: 9px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .login-tab.active {
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--glow);
+    }
+
+    .login-form { display: flex; flex-direction: column; gap: 16px; }
+
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .input-group label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .input-group input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      padding: 13px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+
+    .input-group input::placeholder { color: var(--muted); }
+
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px var(--glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--glow); }
+    .login-btn:active { transform: translateY(0); }
+    .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .login-error {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--danger);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      display: none;
+    }
+
+    .login-success {
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--success);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      display: none;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .login-footer span {
+      color: var(--accent2);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Floating particles background */
+    .particle {
+      position: fixed;
+      width: 2px; height: 2px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0.4;
+      animation: float linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+      10%  { opacity: 0.4; }
+      90%  { opacity: 0.4; }
+      100% { transform: translateY(-100px) translateX(100px); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Floating particles for visual effect -->
+<div class="particle" style="left:10%; animation-duration:8s; animation-delay:0s;"></div>
+<div class="particle" style="left:25%; animation-duration:12s; animation-delay:2s; background:var(--accent2);"></div>
+<div class="particle" style="left:50%; animation-duration:9s; animation-delay:4s;"></div>
+<div class="particle" style="left:75%; animation-duration:11s; animation-delay:1s; background:var(--accent2);"></div>
+<div class="particle" style="left:90%; animation-duration:7s; animation-delay:3s;"></div>
+
+<div class="login-page">
+  <div class="login-container">
+
+    <!-- Logo -->
+    <div class="login-logo">
+      <div class="login-logo-icon">⚡</div>
+      <div class="login-logo-text">Code<span>Doc</span> Generator</div>
+      <div class="login-logo-sub">Powered by Groq AI • LLaMA3-70B</div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+
+      <!-- Tabs: Login / Register -->
+      <div class="login-tabs">
+        <button class="login-tab active" id="tab-login"    onclick="switchAuthTab('login')">🔑 Login</button>
+        <button class="login-tab"        id="tab-register" onclick="switchAuthTab('register')">✨ Register</button>
+      </div>
+
+      <!-- Error / Success messages -->
+      <div class="login-error"   id="auth-error"></div>
+      <div class="login-success" id="auth-success"></div>
+
+      <!-- LOGIN FORM -->
+      <div id="form-login">
+        <div class="login-form">
+          <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="login-username" placeholder="Enter your username or email" autocomplete="username"/>
+          </div>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password"
+              onkeydown="if(event.key==='Enter') doLogin()"/>
+          </div>
+          <button class="login-btn" id="login-btn" onclick="doLogin()">
+            <span id="sp-login" class="spinner" style="display:none"></span>
+            🔑 Login
+          </button>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="form-register" style="display:none">
+        <div class="login-form">
+          <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="reg-name" placeholder="Your full name"/>
+          </div>
+          <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="reg-email" 
+              placeholder="Enter your real email address"/>
+          </div>
+          <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="reg-username" placeholder="Choose a username"/>
+          </div>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="reg-password" placeholder="Choose a password (min 6 chars)"
+              onkeydown="if(event.key==='Enter') doRegister()"/>
+          </div>
+          <button class="login-btn" id="register-btn" onclick="doRegister()">
+            <span id="sp-register" class="spinner" style="display:none"></span>
+            ✨ Create Account
+          </button>
+        </div>
+      </div>
+
+      <div class="divider" style="margin-top:20px"><span>secured with SQLite</span></div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      All features powered by <span>Groq AI</span> •
+      Multi-language support • Free to use
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  const API = "http://localhost:5000/api";
+
+  // ── Check if already logged in ──
+  window.addEventListener('load', async () => {
+    try {
+      const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
+      if (res.ok) {
+        window.location.href = 'index.html';
+      }
+    } catch(e) {}
+  });
+
+  // ── Switch between Login and Register tabs ──
+  function switchAuthTab(tab) {
+    document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none';
+    document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+    hideMessages();
+  }
+
+  function hideMessages() {
+    document.getElementById('auth-error').style.display   = 'none';
+    document.getElementById('auth-success').style.display = 'none';
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = '❌ ' + msg;
+    el.style.display = 'block';
+    document.getElementById('auth-success').style.display = 'none';
+  }
+
+  function showSuccess(msg) {
+    const el = document.getElementById('auth-success');
+    el.textContent = '✅ ' + msg;
+    el.style.display = 'block';
+    document.getElementById('auth-error').style.display = 'none';
+  }
+
+  function toast(msg, type = 'info') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + type;
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => { el.className = ''; }, 3000);
+  }
+
+  // ── LOGIN ──
+  async function doLogin() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+
+    if (!username || !password) { showError('Please enter username and password.'); return; }
+
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    document.getElementById('sp-login').style.display = 'inline-block';
+    hideMessages();
+
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showSuccess('Login successful! Redirecting...');
+        localStorage.setItem('user_name', data.name);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('user_email', data.email);
+        localStorage.setItem('logged_in', 'true');
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+      } else {
+        showError(data.error || 'Login failed.');
+      }
+    } catch(e) {
+      showError('Cannot connect to server. Make sure backend is running!');
+    } finally {
+      btn.disabled = false;
+      document.getElementById('sp-login').style.display = 'none';
+    }
+  }
+
+  // ── REGISTER ──
+  async function doRegister() {
+    const name     = document.getElementById('reg-name').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const username = document.getElementById('reg-username').value.trim();
+    const password = document.getElementById('reg-password').value.trim();
+
+    if (!name || !email || !username || !password) { showError('Please fill all fields.'); return; }
+    if (!email.includes('@')) { showError('Please enter a valid email.'); return; }
+    if (password.length < 6) { showError('Password must be at least 6 characters.'); return; }
+    if (username.length < 3) { showError('Username must be at least 3 characters.'); return; }
+
+    const btn = document.getElementById('register-btn');
+    btn.disabled = true;
+    document.getElementById('sp-register').style.display = 'inline-block';
+    hideMessages();
+
+    try {
+      const res = await fetch(`${API}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name, email, username, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showSuccess('Account created! Please login now.');
+        setTimeout(() => { switchAuthTab('login'); }, 1500);
+      } else {
+        if (data.error.includes('already')) {
+          if (data.error.includes('Email')) {
+            showError('Email already registered! Please login.');
+          } else {
+            showError('Username already taken! Try another.');
+          }
+        } else {
+          showError(data.error || 'Registration failed.');
+        }
+      }
+    } catch(e) {
+      showError('Cannot connect to server. Make sure backend is running!');
+    } finally {
+      btn.disabled = false;
+      document.getElementById('sp-register').style.display = 'none';
+    }
+  }
+</script>
+</body>
+</html>
