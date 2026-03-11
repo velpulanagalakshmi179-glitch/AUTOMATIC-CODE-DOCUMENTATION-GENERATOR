@@ -7,14 +7,14 @@
 
 // ── BACKEND URL ──────────────────────────────────────
 // Change this if your backend runs on a different port
-const API = "http://localhost:5000/api";
+const API = window.BACKEND_URL ? window.BACKEND_URL : "http://localhost:5000/api";
 
 // ════════════════════════════════════════════════════
 // LOGOUT FUNCTION
 // ════════════════════════════════════════════════════
 async function doLogout() {
   try {
-    await fetch('http://localhost:5000/api/auth/logout', 
+    await fetch(`${API}/auth/logout`, 
       {method:'POST', credentials:'include'});
   } catch(e) {}
   localStorage.removeItem('logged_in');
@@ -580,7 +580,7 @@ async function saveEditProfile() {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/auth/update-profile', {
+    const res = await fetch(`${API}/auth/update-profile`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       credentials: 'include',
@@ -639,7 +639,7 @@ function saveChangePassword() {
     errEl.style.display = 'block';
     return;
   }
-  fetch('http://localhost:5000/api/auth/change-password', {
+  fetch(`${API}/auth/change-password`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     credentials: 'include',

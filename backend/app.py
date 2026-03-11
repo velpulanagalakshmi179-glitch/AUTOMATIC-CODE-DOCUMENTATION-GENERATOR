@@ -55,16 +55,16 @@ if not GROQ_API_KEY:
 # APP SETUP
 # ════════════════════════════════════════════════════════════════
 app = Flask(__name__)
-app.secret_key = "codedoc_secret_key_2026_navya"
+app.secret_key = os.getenv("SECRET_KEY", "codedoc_secret_key_2026_navya")
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 # Allow frontend to call this API with credentials
-CORS(app, 
-     resources={r"/api/*": {"origins": ["http://127.0.0.1:5501", 
-                                         "http://localhost:5501"]}},
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5501")
+CORS(app,
+     resources={r"/api/*": {"origins": [FRONTEND_URL, "http://localhost:5501", "http://127.0.0.1:5501"]}},
      supports_credentials=True,
      allow_headers=["Content-Type"],
      methods=["GET", "POST", "OPTIONS"])
@@ -79,7 +79,7 @@ GROQ_MODEL  = "llama-3.3-70b-versatile"
 # DATABASE INITIALIZATION
 # ════════════════════════════════════════════════════════════════
 def init_db():
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(os.getenv('DB_PATH', 'users.db'))
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -169,7 +169,7 @@ def auth_register():
     if len(password) < 6:
         return jsonify({"error": "Password too short"}), 400
     hashed = hashlib.sha256(password.encode()).hexdigest()
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(os.getenv('DB_PATH', 'users.db'))
     c = conn.cursor()
     c.execute("SELECT id FROM users WHERE email=?", (email,))
     if c.fetchone():
@@ -198,7 +198,7 @@ def auth_login():
     identifier = data.get("username","").strip().lower()
     password = data.get("password","").strip()
     hashed = hashlib.sha256(password.encode()).hexdigest()
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(os.getenv('DB_PATH', 'users.db'))
     c = conn.cursor()
     c.execute("SELECT id, name, username, email FROM users WHERE (username=? OR email=?) AND password=?",
               (identifier, identifier, hashed))
@@ -235,7 +235,7 @@ def auth_change_password():
         return jsonify({"error": "Password too short"}), 400
     current_hashed = hashlib.sha256(current_password.encode()).hexdigest()
     new_hashed = hashlib.sha256(new_password.encode()).hexdigest()
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(os.getenv('DB_PATH', 'users.db'))
     c = conn.cursor()
     c.execute("SELECT id FROM users WHERE username=? AND password=?",
               (username, current_hashed))
@@ -265,7 +265,7 @@ def auth_update_profile():
     if len(username) < 3:
         return jsonify({"error": "Username must be at least 3 characters"}), 400
     
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(os.getenv('DB_PATH', 'users.db'))
     c = conn.cursor()
     
     # Check if new email already exists (if different from old email)
@@ -305,7 +305,7 @@ def history_save():
     action = data.get("action","")
     code_snippet = data.get("code","")[:200]
     result_preview = data.get("result","")[:300]
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(os.getenv('DB_PATH', 'users.db'))
     c = conn.cursor()
     c.execute("INSERT INTO history (user_id,action,code_snippet,result_preview,created_at) VALUES (?,?,?,?,?)",
               (session['user_id'], action, code_snippet, result_preview, datetime.now().isoformat()))
@@ -317,7 +317,7 @@ def history_save():
 def history_get():
     if 'user_id' not in session:
         return jsonify({"error": "Not logged in"}), 401
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(os.getenv('DB_PATH', 'users.db'))
     c = conn.cursor()
     c.execute("SELECT id,action,code_snippet,result_preview,created_at FROM history WHERE user_id=? ORDER BY created_at DESC LIMIT 20",
               (session['user_id'],))
@@ -763,4 +763,4 @@ if __name__ == "__main__":
     print("⚡ Code Doc Generator — Backend API running")
     print("   API Base URL: http://localhost:5000/api/")
     print("   Open your frontend/index.html in a browser")
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

@@ -308,8 +308,9 @@
 <!-- Toast -->
 <div id="toast"></div>
 
+<script src="config.js"></script>
 <script>
-  const API = "http://localhost:5000/api";
+  const API = window.BACKEND_URL ? window.BACKEND_URL : "http://localhost:5000/api";
 
   // ── Check if already logged in ──
   window.addEventListener('load', async () => {
