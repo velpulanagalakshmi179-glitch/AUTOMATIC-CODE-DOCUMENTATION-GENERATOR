@@ -399,6 +399,7 @@ async function exportFile(type) {
     const res = await fetch(`${API}/export/${type}`, {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body:    JSON.stringify({ title, content }),
     });
 

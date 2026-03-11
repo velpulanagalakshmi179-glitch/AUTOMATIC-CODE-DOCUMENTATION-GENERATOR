@@ -56,16 +56,16 @@ if not GROQ_API_KEY:
 # ════════════════════════════════════════════════════════════════
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "codedoc_secret_key_2026_navya")
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SAMESITE'] = None
+app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 # Allow frontend to call this API with credentials
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5501")
 CORS(app,
-     origins=["*"],
-     supports_credentials=False,
+     origins=[FRONTEND_URL, "http://localhost:5501", "http://127.0.0.1:5501"],
+     supports_credentials=True,
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "OPTIONS"])
 

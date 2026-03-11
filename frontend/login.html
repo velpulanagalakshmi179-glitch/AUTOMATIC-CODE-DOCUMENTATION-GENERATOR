@@ -389,7 +389,11 @@
         showError(data.error || 'Login failed.');
       }
     } catch(e) {
-      showError('Cannot connect to server. Make sure backend is running!');
+      if (e instanceof TypeError) {
+        showError('Cannot connect to server. Make sure backend is running!');
+      } else {
+        console.error('Login error', e);
+      }
     } finally {
       btn.disabled = false;
       document.getElementById('sp-login').style.display = 'none';
@@ -436,7 +440,11 @@
         }
       }
     } catch(e) {
-      showError('Cannot connect to server. Make sure backend is running!');
+      if (e instanceof TypeError) {
+        showError('Cannot connect to server. Make sure backend is running!');
+      } else {
+        console.error('Register error', e);
+      }
     } finally {
       btn.disabled = false;
       document.getElementById('sp-register').style.display = 'none';
